@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from medicine.models import Product
-from medicine.serializer import ProductSerializer
+from medicine.serializer import ProductSerializer, RetrieveProductSerializer
 
 # Create your views here.
 
@@ -41,7 +41,6 @@ class ProductAPIView(viewsets.GenericViewSet,
                      mixins.RetrieveModelMixin,
                      mixins.DestroyModelMixin):
     queryset = Product.objects.order_by('id')
-    serializer_class = ProductSerializer
     filterset_class = ProductFilter
     """
     As we have file upload, we cannot use json parser,
@@ -58,6 +57,15 @@ class ProductAPIView(viewsets.GenericViewSet,
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated()]
+
+    """
+    Override the get serializer method so that, list and retieve endpoints get a detailed response.
+    In create and update, it will view minimum information.
+    """
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return RetrieveProductSerializer
+        return ProductSerializer
 
     def create(self, request, *args, **kwargs):
         """
